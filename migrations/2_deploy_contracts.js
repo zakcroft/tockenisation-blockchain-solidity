@@ -9,6 +9,6 @@ module.exports = async function(deployer) {
   await deployer.deploy(KycContract);
   await deployer.deploy(CappaTokenSale, 1, addr[0], CappaToken.address, KycContract.address);
   const instance = await CappaToken.deployed();
-  await instance.transfer(CappaTokenSale.address, 1000000);
+  await instance.transfer(CappaTokenSale.address, process.env.INITIAL_TOKENS);
 };
 

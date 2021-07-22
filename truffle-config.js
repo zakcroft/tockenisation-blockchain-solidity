@@ -12,20 +12,27 @@ module.exports = {
   // to customize your Truffle configuration!
   contracts_build_directory: path.join(__dirname, "client/src/contracts"),
   networks: {
-    ganache: {
-      host: "127.0.0.1",
-      port: 6545,
-      network_id: "5777"
-    },
     development: {
       host: "127.0.0.1",
       port: 8545,
       network_id: "*" // Match any network id
     },
+    ganache: {
+      host: "127.0.0.1",
+      port: 7545,
+      network_id: "5777"
+    },
     ganacheCLI: {
       host: "127.0.0.1",
       port: 6545,
-      network_id: "1337"
+      network_id: "1337",
+      provider: () => new HDWalletProvider({
+          mnemonic: {
+            phrase:process.env.MNEMONIC
+          },
+          providerOrUrl:"http://127.0.0.1:6545",
+          numberOfAddresses: 5
+        })
     },
     ganache_local: {
       provider: function() {
