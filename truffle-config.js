@@ -1,7 +1,7 @@
 const path = require("path");
 require('dotenv').config({path: './.env.local'});
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-const MetaMaskAccountIndex = 0;
+const AccountIndex = 0;
 
 //ganache-cli --p 6545 --networkId 1337 --chainId 1337
 //truffle migrate --network ganacheCLI
@@ -34,11 +34,17 @@ module.exports = {
           numberOfAddresses: 5
         })
     },
-    ganache_local: {
+    goerli_infura: {
       provider: function() {
-        return new HDWalletProvider(process.env.MNEMONIC, "http://127.0.0.1:7545", MetaMaskAccountIndex )
+        return new HDWalletProvider(process.env.MNEMONIC, "https://goerli.infura.io/v3/400cc8abcea54bdea880965e741c1b40", AccountIndex)
       },
-      network_id: 5777
+      network_id: 5
+    },
+    ropsten_infura: {
+      provider: function() {
+        return new HDWalletProvider(process.env.MNEMONIC, "https://ropsten.infura.io/v3/400cc8abcea54bdea880965e741c1b40", AccountIndex)
+      },
+      network_id: 3
     }
   },
   compilers: {
