@@ -1,12 +1,8 @@
-/* tslint:disable */
 import React, { Component } from "react";
-import MetaMaskOnboarding from "@metamask/onboarding";
 import "./App.css";
 import { OnboardingButton } from "./components/metamaskOnboarding";
-import detectEthereumProvider from "@metamask/detect-provider";
-
-import getWeb3 from "./getWeb3";
 import Web3 from "web3";
+import getWeb3 from "./getWeb3";
 
 // Must use require
 //https://ethereum.stackexchange.com/questions/94601/trouble-with-web3-eth-contract-abi-usage-with-typescript
@@ -25,6 +21,7 @@ interface s {
   myTokenSale?: any;
   kycContract?: any;
   userTokens?: number;
+  loadInstallMetaMask?: boolean;
 }
 
 class App extends Component<{}, s> {
@@ -33,53 +30,78 @@ class App extends Component<{}, s> {
     kycAddress: "0x123",
     tokenSaleAddress: "",
     accounts: [],
-    networkId: 5, //goerli
+    networkId: 5, //goerli,
+    loadInstallMetaMask: false,
+  };
+
+  loadContracts = async (web3: Web3) => {
+    const { eth } = web3;
+    const accounts = await eth.getAccounts();
+    //this.networkId = await this.web3.eth.net.getId(); <<- this doesn't work with MetaMask anymore
+    const networkId = await eth.getChainId();
+
+    const myToken = new eth.Contract(
+      CappaToken.abi,
+      CappaToken.networks[networkId]?.address
+    );
+    const myTokenSale = new eth.Contract(
+      CappaTokenSale.abi,
+      CappaTokenSale.networks[networkId]?.address
+    );
+    const kycContract = new eth.Contract(
+      KycContract.abi,
+      KycContract.networks[networkId]?.address
+    );
+
+    // console.log("networkId ===", networkId);
+    // console.log("accounts ===", accounts);
+    // console.log("myToken ===", myToken);
+    // console.log("myTokenSale ===", myTokenSale);
+    // console.log("kycContract ===", kycContract);
+    // console.log(
+    //   "CappaToken.networks[networkId]?.address ===",
+    //   CappaToken.networks[networkId]?.address
+    // );
+    // console.log(
+    //   "CappaTokenSale.networks[networkId]?.address ===",
+    //   CappaTokenSale.networks[networkId]?.address
+    // );
+    // console.log(
+    //   "KycContract.networks[networkId]?.address ===",
+    //   KycContract.networks[networkId]?.address
+    // );
+
+    this.setState(
+      {
+        loaded: true,
+        tokenSaleAddress: CappaTokenSale.networks[networkId]?.address,
+        web3,
+        accounts,
+        networkId,
+        myToken,
+        myTokenSale,
+        kycContract,
+      },
+      async () => {
+        await this.updateUserTokens();
+        await this.listenToTokenTransfer();
+      }
+    );
   };
 
   componentDidMount = async () => {
     try {
       const web3 = await getWeb3();
-      const { eth } = web3;
-      const accounts = await eth.getAccounts();
-        //this.networkId = await this.web3.eth.net.getId(); <<- this doesn't work with MetaMask anymore
-      const networkId = await eth.getChainId();
-      console.log('networkId ===', networkId);
-
-      const myToken = new eth.Contract(
-        CappaToken.abi,
-        CappaToken.networks[networkId]?.address
-      );
-      const myTokenSale = new eth.Contract(
-        CappaTokenSale.abi,
-        CappaTokenSale.networks[networkId]?.address
-      );
-      const kycContract = new eth.Contract(
-        KycContract.abi,
-        KycContract.networks[networkId]?.address
-      );
-
-      this.setState(
-        {
-          loaded: true,
-          tokenSaleAddress: CappaTokenSale.networks[networkId]?.address,
-          web3,
-          accounts,
-          networkId,
-          myToken,
-          myTokenSale,
-          kycContract,
-        },
-        async () => {
-          await this.updateUserTokens();
-          await this.listenToTokenTransfer();
+      web3.eth.net.getNetworkType().then(async (netId) => {
+        if(netId !== "goerli"){
+          alert("Change to network Goerli in wallet")
+        } else {
+          await this.loadContracts(web3);
         }
-      );
-    } catch (error) {
-      // Catch any errors for any of the above operations.
-      alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`
-      );
-      console.error(error);
+      });
+    } catch (e) {
+      // no web3 object so load install a wallet.
+      this.setState({ loadInstallMetaMask: true });
     }
   };
 
@@ -124,7 +146,17 @@ class App extends Component<{}, s> {
   };
 
   render() {
-    const { loaded, kycAddress, tokenSaleAddress, userTokens } = this.state;
+    const {
+      loaded,
+      kycAddress,
+      tokenSaleAddress,
+      userTokens,
+      loadInstallMetaMask,
+    } = this.state;
+
+    if (loadInstallMetaMask) {
+      return <OnboardingButton />;
+    }
     if (!loaded) {
       return <div>Loading Web3, accounts, and contract...</div>;
     }

@@ -1,6 +1,6 @@
 import MetaMaskOnboarding from '@metamask/onboarding';
 import { useEffect,useRef, useState } from 'react';
-import '../types'
+import Web3 from "web3";
 
 const ONBOARD_TEXT = 'Click here to install MetaMask!';
 const CONNECT_TEXT = 'Connect';
@@ -35,21 +35,20 @@ export function OnboardingButton() {
         function handleNewAccounts(newAccounts:[]) {
             setAccounts(newAccounts);
         }
+        let web3: Web3 = (window as any).ethereum as Web3;
         if (MetaMaskOnboarding.isMetaMaskInstalled()) {
-            window.ethereum
-                .request({ method: 'eth_requestAccounts' })
+            window.ethereum.request({ method: 'eth_requestAccounts' })
                 .then(handleNewAccounts);
             window.ethereum.on('accountsChanged', handleNewAccounts);
             return () => {
-                window.ethereum.off('accountsChanged', handleNewAccounts);
+                window?.ethereum?.off('accountsChanged', handleNewAccounts);
             };
         }
     }, []);
 
     const onClick = () => {
         if (MetaMaskOnboarding.isMetaMaskInstalled()) {
-            window.ethereum
-                .request({ method: 'eth_requestAccounts' })
+            window.ethereum.request({ method: 'eth_requestAccounts' })
                 .then((newAccounts:[]) => setAccounts(newAccounts));
         } else {
             onboarding.current!.startOnboarding();

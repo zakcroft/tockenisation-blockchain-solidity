@@ -1,12 +1,8 @@
-interface EthereumProvider {
-    isMetaMask?: boolean;
+declare global {
+    interface Window { ethereum: any; }
 }
 
-declare global {
-    interface Window {
-        ethereum?: EthereumProvider;
-    }
-}
+window.ethereum = window.ethereum || {};
 
 export {}
 
