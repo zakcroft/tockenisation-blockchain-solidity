@@ -74,7 +74,7 @@ class App extends Component<{}, s> {
     this.setState(
       {
         loaded: true,
-        tokenSaleAddress: CappaTokenSale.networks[networkId]?.address,
+        tokenSaleAddress: myTokenSale.options.address,
         web3,
         accounts,
         networkId,
@@ -94,6 +94,7 @@ class App extends Component<{}, s> {
       const web3 = await getWeb3();
       web3.eth.net.getNetworkType().then(async (netId) => {
         if(netId !== "goerli"){
+          // contracts only on Goerli
           alert("Change to network Goerli in wallet")
         } else {
           await this.loadContracts(web3);
@@ -139,7 +140,6 @@ class App extends Component<{}, s> {
 
   listenToTokenTransfer = async () => {
     const { myToken, accounts } = this.state;
-    console.log(myToken);
     myToken.events
       .Transfer({ to: accounts?.[0] })
       .on("data", this.updateUserTokens);
